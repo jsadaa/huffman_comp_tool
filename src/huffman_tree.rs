@@ -48,7 +48,7 @@ impl HuffNode {
     }
 
     // Retourne le code de Huffman associé à un élément
-    pub(crate) fn huff_code(&self, element: u8, path: &mut Vec<u8>) -> Option<Vec<u8>> {
+    pub(crate) fn huff_code(&self, element: u8, path: &mut Vec<bool>) -> Option<Vec<bool>> {
         if self.is_leaf() {
             if self.element().unwrap() == element {
                 return Some(path.clone());
@@ -57,7 +57,7 @@ impl HuffNode {
         }
 
         let (left, right) = self.left_right().unwrap();
-        path.push(0);
+        path.push(false);
 
         let mut left_path = path.clone();
         let mut right_path = path.clone();
@@ -68,7 +68,7 @@ impl HuffNode {
         }
 
         path.pop();
-        path.push(1);
+        path.push(true);
 
         let right_code = right.huff_code(element, &mut right_path);
         if right_code.is_some() {
@@ -77,6 +77,8 @@ impl HuffNode {
 
         None
     }
+
+    // retourne les huff codes pour les bits (bool) pour la décompression
 }
 
 // Trait Ord nécessaire pour l'utilisation dans un BinaryHeap
