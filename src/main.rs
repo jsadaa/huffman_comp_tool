@@ -24,22 +24,29 @@ fn main() {
     }
 
     let huff_tree: HuffNode = huffman_tree::build_tree(&mut heap);
-    let mut path: Vec<u8> = Vec::new();
-    let mut huff_codes: HashMap<u8, Vec<u8>> = HashMap::new();
+    let mut path: Vec<bool> = Vec::new();
+    let mut huff_codes: HashMap<u8, Vec<bool>> = HashMap::new();
 
     for (el, _) in map {
-        let code: Option<Vec<u8>> = huff_tree.huff_code(el, &mut path);
+        let code: Option<Vec<bool>> = huff_tree.huff_code(el, &mut path);
         if let Some(code) = code {
             huff_codes.insert(el, code);
         }
+        path.clear();
     }
 
     if let Err(e) = file::write_header("output.bin", &huff_codes) {
-        eprintln!("Erreur lors de l'écriture de l'en-tête: {}", e);
+        eprintln!("Error while writing header: {}", e);
         return;
     }
 
     if let Err(e) = file::write_compressed_data("output.bin", &source, &huff_codes) {
-        eprintln!("Erreur lors de l'écriture des données: {}", e);
+        eprintln!("Error while writing compressed data: {}", e);
     }
+
+    let old_size = source.len();
+    let new_size = std::fs::metadata("output.bin").unwrap().len() as usize;
+
+    println!("Original Size: {} bytes", old_size);
+    println!("Compressed Size: {} bytes", new_size);
 }
