@@ -54,28 +54,21 @@ impl HuffNode {
         }
 
         let (left, right) = self.left_right().unwrap();
-        path.push(false);
 
-        let mut left_path = path.clone();
-        let mut right_path = path.clone();
-
-        let left_code = left.huff_code(element, &mut left_path);
-        if left_code.is_some() {
-            return left_code;
+        // Tentative de trouver le code dans le sous-arbre gauche
+        path.push(false); // Ajoute un faux bit pour le chemin vers la gauche
+        if let Some(code) = left.huff_code(element, path) {
+            return Some(code);
         }
+        path.pop(); // Important : supprime le dernier bit du chemin car il n'a pas mené à l'élément
 
-        path.pop();
-        path.push(true);
+        // Tentative de trouver le code dans le sous-arbre droit
+        path.push(true); // Ajoute un vrai bit pour le chemin vers la droite
+        let result = right.huff_code(element, path);
+        path.pop(); // Supprime le dernier bit du chemin après l'appel récursif
 
-        let right_code = right.huff_code(element, &mut right_path);
-        if right_code.is_some() {
-            return right_code;
-        }
-
-        None
+        result
     }
-
-    // retourne les huff codes pour les bits (bool) pour la décompression
 }
 
 // Trait Ord nécessaire pour l'utilisation dans un BinaryHeap
