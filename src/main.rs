@@ -1,52 +1,72 @@
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
-use crate::huffman_tree::HuffNode;
+use huffman::node::HuffNode;
+use crate::compression::compressor;
+use crate::file::{counter, writer};
+use crate::huffman::tree::build_tree;
 
-mod parsing;
-mod huffman_tree;
+mod huffman;
+mod compression;
 mod file;
-mod bit_writer;
+mod process;
 
 fn main() {
-    let file = std::fs::read_to_string("./135-0.txt");
+    let args: Vec<String> = std::env::args().collect();
 
-    if file.is_err() {
-        eprintln!("Error : {}", file.err().unwrap());
+    if args.len() != 3 {
+        eprintln!("Usage: {} <file>", args[0]);
         std::process::exit(1);
     }
 
-    let source = file.unwrap();
-    let map: HashMap<u8, i32> = parsing::count_bytes(&source);
-    let mut heap: BinaryHeap<Reverse<HuffNode>> = BinaryHeap::new();
+    let option = &args[1];
+    let file_path = args[2].as_str();
 
-    for (el, freq) in &map {
-        heap.push(Reverse(HuffNode::new_leaf(*el, *freq) ))
-    }
+    // if the option is -c, compress the file
+    if option == "-c" {
+        let source = match std::fs::read_to_string(&args[2]) {
+            Ok(content) => content,
+            Err(err) => {
+                eprintln!("Error : {}", err);
+                std::process::exit(1);
+            },
+        };
 
-    let huff_tree: HuffNode = huffman_tree::build_tree(&mut heap);
-    let mut path: Vec<bool> = Vec::new();
-    let mut huff_codes: HashMap<u8, Vec<bool>> = HashMap::new();
+        let (huff_codes,compressed_data) = process::compress(&source);
+        let write_res = process::write_comp_file("output.bin", compressed_data, huff_codes);
 
-    for (el, _) in map {
-        let code: Option<Vec<bool>> = huff_tree.huff_code(el, &mut path);
-        if let Some(code) = code {
-            huff_codes.insert(el, code);
+        if let Err(ref e) = write_res {
+            eprintln!("Error while writing compressed file: {}", e);
         }
-        path.clear();
+
+        let old_size = source.len();
+        let new_size = std::fs::metadata("output.bin").unwrap().len() as usize;
+
+        process::print_sizes(old_size, new_size);
+    } else if option == "-d" {
+        let decomp_res = process::decompress(file_path);
+
+        if let Err(ref e) = decomp_res {
+            eprintln!("Error while decompressing file: {}", e);
+            std::process::exit(1);
+        }
+
+        let write_res = process::write_dec_file("output.txt", &decomp_res.unwrap());
+
+        if let Err(ref e) = write_res {
+            eprintln!("Error while writing decompressed file: {}", e);
+            std::process::exit(1);
+        }
+
+        let old_size = std::fs::metadata(&args[2]).unwrap().len() as usize;
+        let new_size = std::fs::metadata("output.txt").unwrap().len() as usize;
+
+        process::print_sizes(old_size, new_size);
+    } else {
+        eprintln!("Invalid option: {}", option);
+        std::process::exit(1);
     }
-
-    if let Err(e) = file::write_header("output.bin", &huff_codes) {
-        eprintln!("Error while writing header: {}", e);
-        return;
-    }
-
-    if let Err(e) = file::write_compressed_data("output.bin", &source, &huff_codes) {
-        eprintln!("Error while writing compressed data: {}", e);
-    }
-
-    let old_size = source.len();
-    let new_size = std::fs::metadata("output.bin").unwrap().len() as usize;
-
-    println!("Original Size: {} bytes", old_size);
-    println!("Compressed Size: {} bytes", new_size);
 }

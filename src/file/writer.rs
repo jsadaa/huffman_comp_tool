@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use crate::bit_writer::BitWriter;
+use std::io;
+use std::io::{Write};
+use byteorder::{LittleEndian, WriteBytesExt};
+use crate::file::bit_writer::BitWriter;
 
-pub(crate) fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>) -> std::io::Result<()> {
-    use std::io::Write;
-    use byteorder::{WriteBytesExt, LittleEndian};
+pub fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>) -> std::io::Result<()> {
 
     // Ouvrir le fichier en écriture
     let mut file = std::fs::File::create(filename)?;
@@ -29,23 +30,22 @@ pub(crate) fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>) 
     Ok(())
 }
 
-pub(crate) fn write_compressed_data(filename: &str, source: &str, huff_codes: &HashMap<u8, Vec<bool>>) -> std::io::Result<()> {
+pub fn write_comp_data(filename: &str, compressed_data: Vec<bool>) -> io::Result<()> {
     // Ouvrir le fichier en mode d'ajout
     let file = std::fs::OpenOptions::new().append(true).open(filename)?;
     let mut writer = BitWriter::new(file);
 
-    // Parcourir chaque caractère dans la source
-    for byte in source.bytes() {
-        // Obtenir le vecteur de code Huffman pour ce caractère
-        if let Some(code) = huff_codes.get(&byte) {
-            // Écrire le code de Huffman dans le fichier
-            for &bit in code {
-                writer.write(bit as u8)?;    // writing bit by bit
-            }
-        }
+    for &bit in &compressed_data {
+        writer.write(bit as u8)?;
     }
 
     // Flusher les bits restants dans le buffer
     writer.flush()?;
+    Ok(())
+}
+
+pub(crate) fn write_decomp_data(output_path: &str, data: &[u8]) -> io::Result<()> {
+    let mut file = std::fs::File::create(output_path)?;
+    file.write_all(data)?;
     Ok(())
 }
