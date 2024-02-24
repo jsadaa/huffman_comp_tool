@@ -4,28 +4,23 @@ use std::io::{Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use crate::file::bit_writer::BitWriter;
 
-pub fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>) -> std::io::Result<()> {
-
-    // Ouvrir le fichier en écriture
+pub fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>, total_bits: u64) -> std::io::Result<()> {
     let mut file = std::fs::File::create(filename)?;
 
-    // Écrire chaque entrée de la table huff_codes dans le fichier
-    for (key, value) in huff_codes {
-        // Écrire la clé
-        file.write_all(&[*key])?;
+    // Écrire la longueur totale des données compressées en bits au début
+    file.write_u64::<LittleEndian>(total_bits)?;
 
-        // Écrire la longueur du vecteur en utilisant 2 octets (16 bits)
+    for (key, value) in huff_codes {
+        file.write_all(&[*key])?;
         file.write_u16::<LittleEndian>(value.len() as u16)?;
 
-        // Écrire le vecteur lui-même
         let mut writer = BitWriter::new(&file);
         for &bit in value {
             writer.write(bit as u8)?;
         }
     }
 
-    // Écrire un octet de séparation entre l'en-tête et le corps
-    file.write_all(&[0u8])?;
+    file.write_all(&[0u8])?; // Octet de séparation
 
     Ok(())
 }

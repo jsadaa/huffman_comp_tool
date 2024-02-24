@@ -7,16 +7,15 @@ use crate::huffman::node::HuffNode;
 use crate::huffman::tree::build_tree;
 use crate::process;
 
-pub fn compress(source: &str) -> (HashMap<u8, Vec<bool>>, Vec<bool>) {
+pub fn compress(source: &str) -> (HashMap<u8, Vec<bool>>, Vec<bool>, u64) {
     let huff_codes = gen_prefix_code_tab(source);
-    let compressed_data = compressor::compress(source, &huff_codes);
-
-    (huff_codes, compressed_data)
+    let (compressed_data, total_bits) = compressor::compress(source, &huff_codes);
+    (huff_codes, compressed_data, total_bits)
 }
 
 pub fn decompress(file_path: &str) -> Result<Vec<u8>, std::io::Error> {
-    let (huff_codes, start_pos) = reader::read_header(file_path)?;
-    compressor::decompress(file_path, &huff_codes, start_pos)
+    let (huff_codes, total_bits, start_pos) = reader::read_header(file_path)?;
+    compressor::decompress(file_path, &huff_codes, start_pos, total_bits as usize)
 }
 
 fn gen_prefix_code_tab(source: &str) -> HashMap<u8, Vec<bool>> {
@@ -42,8 +41,8 @@ fn gen_prefix_code_tab(source: &str) -> HashMap<u8, Vec<bool>> {
     huff_codes
 }
 
-pub fn write_comp_file(filename: &str, comp_data: Vec<bool>, huff_codes: HashMap<u8, Vec<bool>>) -> Result<(), std::io::Error> {
-    if let Err(e) = writer::write_header(filename, &huff_codes) {
+pub fn write_comp_file(filename: &str, comp_data: Vec<bool>, huff_codes: HashMap<u8, Vec<bool>>, total_bits: u64) -> Result<(), std::io::Error> {
+    if let Err(e) = writer::write_header(filename, &huff_codes, total_bits) {
         eprintln!("Error while writing header: {}", e);
     }
 

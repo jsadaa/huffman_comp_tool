@@ -35,8 +35,8 @@ fn main() {
             },
         };
 
-        let (huff_codes,compressed_data) = process::compress(&source);
-        let write_res = process::write_comp_file("output.bin", compressed_data, huff_codes);
+        let (huff_codes, compressed_data, total_bits) = process::compress(&source);
+        let write_res = process::write_comp_file("output.bin", compressed_data, huff_codes, total_bits);
 
         if let Err(ref e) = write_res {
             eprintln!("Error while writing compressed file: {}", e);
