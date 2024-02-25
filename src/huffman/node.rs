@@ -38,9 +38,9 @@ impl HuffNode {
         }
     }
 
-    pub(crate) fn huff_code(&self, element: u8, path: &mut Vec<bool>) -> Option<Vec<bool>> {
+    pub(crate) fn huff_code(&self, element: &u8, path: &mut Vec<bool>) -> Option<Vec<bool>> {
         if self.is_leaf() {
-            if self.element().unwrap() == element {
+            if self.element().unwrap() == *element {
                 return Some(path.clone());
             }
             return None;
@@ -48,23 +48,22 @@ impl HuffNode {
 
         let (left, right) = self.left_right().unwrap();
 
-        // Tentative de trouver le code dans le sous-arbre gauche
-        path.push(false); // Ajoute un faux bit pour le chemin vers la gauche
+        // Try to find the code in the left subtree
+        path.push(false); // add a false bit for the path to the left
         if let Some(code) = left.huff_code(element, path) {
             return Some(code);
         }
-        path.pop(); // Important : supprime le dernier bit du chemin car il n'a pas mené à l'élément
+        path.pop(); // delete the last bit of the path because it does not lead to the element
 
-        // Tentative de trouver le code dans le sous-arbre droit
-        path.push(true); // Ajoute un vrai bit pour le chemin vers la droite
+        // try to find the code in the right subtree
+        path.push(true); // add a true bit for the path to the right
         let result = right.huff_code(element, path);
-        path.pop(); // Supprime le dernier bit du chemin après l'appel récursif
+        path.pop(); // delete the last bit of the path because it does not lead to the element
 
         result
     }
 }
 
-// Trait Ord nécessaire pour l'utilisation dans un BinaryHeap
 impl Ord for HuffNode {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.weight().cmp(&other.weight())
@@ -74,5 +73,14 @@ impl Ord for HuffNode {
 impl PartialOrd for HuffNode {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl Clone for HuffNode {
+    fn clone(&self) -> Self {
+        match self {
+            HuffNode::Internal { weight, left, right } => HuffNode::Internal { weight: *weight, left: left.clone(), right: right.clone() },
+            HuffNode::Leaf { weight, element } => HuffNode::Leaf { weight: *weight, element: *element },
+        }
     }
 }

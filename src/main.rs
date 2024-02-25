@@ -14,9 +14,8 @@ fn main() {
     let option = &args[1];
     let file_path = args[2].as_str();
 
-    // if the option is -c, compress the file
     if option == "-c" {
-        let source = match std::fs::read_to_string(&args[2]) {
+        let source = match std::fs::read(&args[2]) {
             Ok(content) => content,
             Err(err) => {
                 eprintln!("Error : {}", err);
@@ -24,15 +23,15 @@ fn main() {
             }
         };
 
-        let (huff_codes, compressed_data, total_bits) = process::compress(&source);
-        let write_res = process::write_comp_file("output.bin", compressed_data, huff_codes, total_bits);
+        let (prefix_code_table, compressed_data, total_bits) = process::compress(&source);
+        let write_res = process::write_comp_file("output.bin", compressed_data, prefix_code_table, total_bits);
 
         if let Err(ref e) = write_res {
             eprintln!("Error while writing compressed file: {}", e);
         }
 
-        let old_size = source.len();
-        let new_size = std::fs::metadata("output.bin").unwrap().len() as usize;
+        let old_size: usize = source.len();
+        let new_size: usize = std::fs::metadata("output.bin").unwrap().len() as usize;
 
         println!("Original Size: {} bytes", old_size);
         println!("Compressed Size: {} bytes", new_size);
@@ -44,7 +43,7 @@ fn main() {
             std::process::exit(1);
         }
 
-        let write_res = process::write_dec_file("output.pdf", &decomp_res.unwrap());
+        let write_res = process::write_dec_file("output.txt", &decomp_res.unwrap());
 
         if let Err(ref e) = write_res {
             eprintln!("Error while writing decompressed file: {}", e);
@@ -52,7 +51,7 @@ fn main() {
         }
 
         let old_size = std::fs::metadata(&args[2]).unwrap().len() as usize;
-        let new_size = std::fs::metadata("output.pdf").unwrap().len() as usize;
+        let new_size = std::fs::metadata("output.txt").unwrap().len() as usize;
 
         println!("Original Size: {} bytes", old_size);
         println!("Decompressed Size: {} bytes", new_size);
