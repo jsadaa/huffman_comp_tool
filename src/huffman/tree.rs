@@ -1,5 +1,6 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
+
 use crate::huffman::node::HuffNode;
 
 pub fn build_tree(heap: &mut BinaryHeap<Reverse<HuffNode>>) -> HuffNode {

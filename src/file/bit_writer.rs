@@ -1,4 +1,4 @@
-use std::io::{Write, Result};
+use std::io::{Result, Write};
 
 pub struct BitWriter<W: Write> {
     writer: W,

@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::io;
-use std::io::{Write};
+use std::io::Write;
+
 use byteorder::{LittleEndian, WriteBytesExt};
+
 use crate::file::bit_writer::BitWriter;
 
 pub fn write_header(filename: &str, huff_codes: &HashMap<u8, Vec<bool>>, total_bits: u64) -> std::io::Result<()> {
@@ -34,7 +36,7 @@ pub fn write_comp_data(filename: &str, compressed_data: Vec<bool>) -> io::Result
         writer.write(bit as u8)?;
     }
 
-    // Flusher les bits restants dans le buffer
+    // Flusher les bits restants dans le buffer pour s'assurer que tout est écrit
     writer.flush()?;
     Ok(())
 }

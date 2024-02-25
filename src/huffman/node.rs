@@ -5,30 +5,25 @@ pub enum HuffNode {
 }
 
 impl HuffNode {
-    // Constructeur pour les feuilles
     pub(crate) fn new_leaf(element: u8, weight: i32) -> Self {
         HuffNode::Leaf { element, weight }
     }
 
-    // Constructeur pour les noeuds internes
     pub(crate) fn new_internal(left: Box<HuffNode>, right: Box<HuffNode>) -> Self {
         let weight = left.weight() + right.weight();
         HuffNode::Internal { weight, left, right }
     }
 
-    // Retourne le poids du noeud
     pub(crate) fn weight(&self) -> i32 {
         match self {
             HuffNode::Internal { weight, .. } | HuffNode::Leaf { weight, .. } => *weight,
         }
     }
 
-    // Teste si le noeud est une feuille
     pub(crate) fn is_leaf(&self) -> bool {
         matches!(self, HuffNode::Leaf { .. })
     }
 
-    // Retourne les fils gauche et droite d'un noeud interne
     pub(crate) fn left_right(&self) -> Option<(&HuffNode, &HuffNode)> {
         match self {
             HuffNode::Internal { left, right, .. } => Some((left, right)),
@@ -36,7 +31,6 @@ impl HuffNode {
         }
     }
 
-    // Retourne l'élément d'une feuille
     pub(crate) fn element(&self) -> Option<u8> {
         match self {
             HuffNode::Leaf { element, .. } => Some(*element),
@@ -44,7 +38,6 @@ impl HuffNode {
         }
     }
 
-    // Retourne le code de Huffman associé à un élément
     pub(crate) fn huff_code(&self, element: u8, path: &mut Vec<bool>) -> Option<Vec<bool>> {
         if self.is_leaf() {
             if self.element().unwrap() == element {

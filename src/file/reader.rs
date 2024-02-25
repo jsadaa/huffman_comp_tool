@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io;
 use std::io::{Cursor, Read};
+
 use byteorder::{LittleEndian, ReadBytesExt};
 
 pub(crate) fn read_header(file_path: &str) -> io::Result<(HashMap<u8, Vec<bool>>, u64, u64)> {
