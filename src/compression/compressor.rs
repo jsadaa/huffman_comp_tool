@@ -19,8 +19,7 @@ pub(crate) fn compress(source: &Vec<u8>, huff_codes: &HashMap<u8, Vec<bool>>) ->
     (compressed_data, total_bits)
 }
 
-pub(crate) fn decompress(file_path: &str, prefix_code_table: &HashMap<u8, Vec<bool>>, start_pos: u64, data_length_in_bits: usize) -> io::Result<Vec<u8>> {
-    let mut file = File::open(file_path)?;
+pub(crate) fn decompress(mut file: &File, prefix_code_table: &HashMap<u8, Vec<bool>>, start_pos: u64, data_length_in_bits: usize) -> io::Result<Vec<u8>> {
     file.seek(SeekFrom::Start(start_pos))?;
 
     let mut compressed_data = Vec::new();

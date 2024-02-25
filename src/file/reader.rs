@@ -5,8 +5,7 @@ use std::io::{Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-pub(crate) fn read_header(file_path: &str) -> io::Result<(HashMap<u8, Vec<bool>>, u64, u64)> {
-    let mut file = File::open(file_path)?;
+pub(crate) fn read_header(mut file: &File) -> io::Result<(HashMap<u8, Vec<bool>>, u64, u64)> {
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
     let mut cursor = Cursor::new(buffer);

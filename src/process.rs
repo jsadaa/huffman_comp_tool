@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs::File;
 
 use crate::compression::compressor;
 use crate::file::{counter, reader, writer};
@@ -14,9 +15,9 @@ pub fn compress(source: &Vec<u8>) -> (HashMap<u8, Vec<bool>>, Vec<bool>, u64) {
     (prefix_code_table, compressed_data, total_bits)
 }
 
-pub fn decompress(file_path: &str) -> Result<Vec<u8>, std::io::Error> {
-    let (prefix_code_table, total_bits, start_pos) = reader::read_header(file_path)?;
-    compressor::decompress(file_path, &prefix_code_table, start_pos, total_bits as usize)
+pub fn decompress(file: File) -> Result<Vec<u8>, std::io::Error> {
+    let (prefix_code_table, total_bits, start_pos) = reader::read_header(&file)?;
+    compressor::decompress(&file, &prefix_code_table, start_pos, total_bits as usize)
 }
 
 pub fn write_comp_file(filename: &str, comp_data: Vec<bool>, huff_codes: HashMap<u8, Vec<bool>>, total_bits: u64) -> Result<(), std::io::Error> {

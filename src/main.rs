@@ -1,3 +1,5 @@
+use std::fs::File;
+
 mod huffman;
 mod compression;
 mod file;
@@ -36,7 +38,13 @@ fn main() {
         println!("Original Size: {} bytes", old_size);
         println!("Compressed Size: {} bytes", new_size);
     } else if option == "-d" {
-        let decomp_res = process::decompress(file_path);
+        let file = File::open(file_path);
+        if let Err(ref e) = file {
+            eprintln!("Error while opening file: {}", e);
+            std::process::exit(1);
+        }
+
+        let decomp_res = process::decompress(file.unwrap());
 
         if let Err(ref e) = decomp_res {
             eprintln!("Error while decompressing file: {}", e);
