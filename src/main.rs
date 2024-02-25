@@ -1,14 +1,3 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-
-use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap};
-use huffman::node::HuffNode;
-use crate::compression::compressor;
-use crate::file::{counter, writer};
-use crate::huffman::tree::build_tree;
-
 mod huffman;
 mod compression;
 mod file;
@@ -32,7 +21,7 @@ fn main() {
             Err(err) => {
                 eprintln!("Error : {}", err);
                 std::process::exit(1);
-            },
+            }
         };
 
         let (huff_codes, compressed_data, total_bits) = process::compress(&source);
@@ -45,7 +34,8 @@ fn main() {
         let old_size = source.len();
         let new_size = std::fs::metadata("output.bin").unwrap().len() as usize;
 
-        process::print_sizes(old_size, new_size);
+        println!("Original Size: {} bytes", old_size);
+        println!("Compressed Size: {} bytes", new_size);
     } else if option == "-d" {
         let decomp_res = process::decompress(file_path);
 
@@ -54,7 +44,7 @@ fn main() {
             std::process::exit(1);
         }
 
-        let write_res = process::write_dec_file("output.txt", &decomp_res.unwrap());
+        let write_res = process::write_dec_file("output.pdf", &decomp_res.unwrap());
 
         if let Err(ref e) = write_res {
             eprintln!("Error while writing decompressed file: {}", e);
@@ -62,9 +52,10 @@ fn main() {
         }
 
         let old_size = std::fs::metadata(&args[2]).unwrap().len() as usize;
-        let new_size = std::fs::metadata("output.txt").unwrap().len() as usize;
+        let new_size = std::fs::metadata("output.pdf").unwrap().len() as usize;
 
-        process::print_sizes(old_size, new_size);
+        println!("Original Size: {} bytes", old_size);
+        println!("Decompressed Size: {} bytes", new_size);
     } else {
         eprintln!("Invalid option: {}", option);
         std::process::exit(1);

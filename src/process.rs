@@ -1,11 +1,10 @@
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
-use crate::compression::compressor;
 
+use crate::compression::compressor;
 use crate::file::{counter, reader, writer};
 use crate::huffman::node::HuffNode;
 use crate::huffman::tree::build_tree;
-use crate::process;
 
 pub fn compress(source: &str) -> (HashMap<u8, Vec<bool>>, Vec<bool>, u64) {
     let huff_codes = gen_prefix_code_tab(source);
@@ -23,7 +22,7 @@ fn gen_prefix_code_tab(source: &str) -> HashMap<u8, Vec<bool>> {
     let mut heap: BinaryHeap<Reverse<HuffNode>> = BinaryHeap::new();
 
     for (el, freq) in &map {
-        heap.push(Reverse(HuffNode::new_leaf(*el, *freq) ))
+        heap.push(Reverse(HuffNode::new_leaf(*el, *freq)))
     }
 
     let huff_tree: HuffNode = build_tree(&mut heap);
@@ -59,9 +58,4 @@ pub fn write_dec_file(output_path: &str, data: &[u8]) -> Result<(), std::io::Err
     }
 
     Ok(())
-}
-
-pub fn print_sizes(old_size: usize, new_size: usize) {
-    println!("Original Size: {} bytes", old_size);
-    println!("Compressed Size: {} bytes", new_size);
 }
